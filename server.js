@@ -38,6 +38,12 @@ const sessionStore = new SequelizeStore({
   expiration: Number(process.env.SESSION_EXPIRE),
 });
 
+function generateShortSessionId() {
+  const timestamp = Date.now().toString(36); // Convert current timestamp to base36
+  const randomChars = Math.random().toString(36).slice(2, 8); // Generate random alphanumeric characters
+  return `${timestamp}-${randomChars}`; // Combine timestamp and random characters
+}
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET_KEY,
@@ -45,6 +51,7 @@ app.use(
     saveUninitialized: false,
     name: process.env.SESSION_COOKIE_NAME,
     store: sessionStore,
+    genid: generateShortSessionId,
     cookie: {
       secure: process.env.SESSION_COOKIE_SECURE == "true" ? true : false,
       httpOnly: process.env.SESSION_COOKIE_HTTP_ONLY == "true" ? true : false,
