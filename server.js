@@ -84,6 +84,5 @@ dbConn.sync().then(() => {
 });
 
 app.listen(process.env.PORT, () => {
-  console.log("yoooo");
   console.log(`Server is up on port ${process.env.PORT}`);
 });
