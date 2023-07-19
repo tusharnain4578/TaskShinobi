@@ -19,6 +19,7 @@ const sgValidate = (name, email, password, cpassword) => {
     name.trim().length > 30 ||
     email.trim().length == 0 ||
     !emailRegex.test(email) ||
+    email.length > 150 ||
     !passwordRegex.test(password) ||
     cpassword != password;
 

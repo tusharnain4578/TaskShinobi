@@ -69,8 +69,12 @@ const sgValidator = (event) => {
     invalid.msg = "Field is Required!";
   } else if ("sg_name" == field && value.length > 30) {
     invalid.msg = "Maximum 30 characters allowed!";
-  } else if ("sg_email" == field && !emailRegex.test(value)) {
-    invalid.msg = "Invalid Email Address!";
+  } else if ("sg_email" == field) {
+    if (!emailRegex.test(value)) {
+      invalid.msg = "Invalid Email Address!";
+    } else if (value.length > 150) {
+      invalid.msg = "Max 150 characters allowed!";
+    }
   } else if ("sg_password" == field) {
     if (value.length < 8) {
       invalid.msg = "Password must be atleat 8 digits!";
@@ -103,9 +107,14 @@ const lgValidator = (event) => {
   let invalid = { field: field };
   if (value.length == 0) {
     invalid.msg = "Field is Required!";
-  } else if ("lg_email" == field && !emailRegex.test(value)) {
-    invalid.msg = "Invalid Email Address!";
+  } else if ("lg_email" == field) {
+    if (!emailRegex.test(value)) {
+      invalid.msg = "Invalid Email Address!";
+    } else if (value.length > 150) {
+      invalid.msg = "Max 150 characters allowed!";
+    }
   }
+
   if (invalid.msg) {
     lgValid = false;
     return invalidateField("#" + field, invalid.msg);
