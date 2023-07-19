@@ -81,7 +81,8 @@ app.post("/api/task/delete", isAuthenticated, deleteTask);
 //syncing database and starting server
 dbConn.sync().then(() => {
   console.log("Database Synced");
-  app.listen(process.env.PORT, () => {
-    console.log(`Server is up on port ${process.env.PORT}`);
-  });
+});
+
+app.listen(process.env.PORT, () => {
+  console.log(`Server is up on port ${process.env.PORT}`);
 });
