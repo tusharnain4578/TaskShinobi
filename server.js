@@ -63,7 +63,7 @@ app.use(
 
 app.use(express.json());
 
-app.use(express.static("public"));
+app.use(express.static("public", { maxAge: process.env.PUBLIC_CACHE ?? 0 }));
 
 app.get("/test", isAuthenticated, async (req, res) => {
   const tasks = await Task.getAllTasks(1, 5);

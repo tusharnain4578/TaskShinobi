@@ -3,7 +3,7 @@ const { DataTypes } = require("sequelize");
 
 const Session = dbConn.define("Session", {
   sid: {
-    type: DataTypes.STRING(40),
+    type: DataTypes.STRING,
     primaryKey: true,
   },
   expires: DataTypes.DATE,
