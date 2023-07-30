@@ -25,7 +25,8 @@ function onEvent(field, event, callback) {
   });
 }
 
-const show = (selector) => (select(selector).style.display = "block");
+const show = (selector, displayProp = "block") =>
+  (select(selector).style.display = displayProp);
 const hide = (selector) => (select(selector).style.display = "none");
 
 function invalidateField(selector, message = null) {
@@ -139,6 +140,15 @@ function onModalClose(event) {
 
 onEvent("#signupModal", "hidden.bs.modal", onModalClose);
 onEvent("#loginModal", "hidden.bs.modal", onModalClose);
+
+//on closing of edit modal
+onEvent("#editModal", "hidden.bs.modal", function () {
+  select("#edit_task_image").value = "";
+  hide("#edit_task_image_prev");
+  validateField("#edit_task");
+  validateField("#edit_task_image");
+  hide("#clear_edit_input");
+});
 
 onEvent(".task-textbox", "keypress", function (event) {
   if (event.keyCode === 13) {

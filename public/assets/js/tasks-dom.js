@@ -1,6 +1,7 @@
 var taskRow = `<tr class="task-row {{important}} {{darkTable}}" data-id="{{taskId}}">
 <th role="button" onclick="showTask({{taskId}})" scope="row" class="task_sr"></th>
 <td role="button" onclick="showTask({{taskId}})" class="task-text {{lineThrough}}">{{task}}</td>
+<td role="button" onclick="showTask({{taskId}})" class="task-row-image">{{taskImg}}</td>
 <td class="actions d-flex">
 
     <div class="fieldset check-box">
@@ -13,6 +14,8 @@ var taskRow = `<tr class="task-row {{important}} {{darkTable}}" data-id="{{taskI
     <i role="button" onclick="deleteTask(event, {{taskId}})" class="fa-sharp fa-solid fa-trash text-danger h3 ms-3"></i>
 </td>
 </tr>`;
+
+var taskImageTag = `<img class="task-img" src="{{imgSrc}}"></img>`;
 
 function setSerialNumbers() {
   const srs = selectAll(".task_sr");
@@ -37,16 +40,26 @@ function getTaskHtml(task) {
     task.status == "complete" ? "line-through" : ""
   );
 
-  if (theme == "dark")
-    taskRowHtml = taskRowHtml.replace(
-      /{{darkTable}}/g,
-      "table-dark white-border-row"
-    );
+  taskRowHtml = taskRowHtml.replace(
+    /{{darkTable}}/g,
+    theme == "dark" ? "table-dark white-border-row" : ""
+  );
 
   taskRowHtml = taskRowHtml.replace(
     /{{important}}/g,
     task.isImportant ? `row-important` : ""
   );
+
+  if (task.image) {
+    const imgHtml = taskImageTag.replace(
+      /{{imgSrc}}/g,
+      "/taskimage/" + task.image
+    );
+
+    taskRowHtml = taskRowHtml.replace(/{{taskImg}}/g, imgHtml);
+  } else {
+    taskRowHtml = taskRowHtml.replace(/{{taskImg}}/g, "");
+  }
 
   return taskRowHtml;
 }
@@ -94,6 +107,23 @@ function editTask(task) {
   row.querySelector(".task-text").innerText = nl2space(task.task);
   if (task.isImportant) row.classList.add("row-important");
   else row.classList.remove("row-important");
+
+  // taskImageTag
+  if (task.image) {
+    if (row.querySelector(".task-row-image").querySelector("img")) {
+      row.querySelector(".task-row-image").querySelector("img").src =
+        "/taskimage/" + task.image;
+    } else {
+      const imgHtml = taskImageTag.replace(
+        /{{imgSrc}}/g,
+        "/taskimage/" + task.image
+      );
+      row.querySelector(".task-row-image").innerHTML = imgHtml;
+    }
+  } else {
+    row.childNodes(".task-row-image").childNodes("img").remove();
+  }
+
   console.log(row);
 }
 function checkTask(task) {
@@ -104,6 +134,13 @@ function checkTask(task) {
 
   if (task.status == "complete") taskText.classList.add("line-through");
   else taskText.classList.remove("line-through");
+}
+
+function clearImageInput(event, input, prevContainer) {
+  select(input).value = "";
+  hide(prevContainer);
+  hide("#" + event.target.id);
+  validateField(input);
 }
 
 function removeTask(taskId) {
@@ -147,6 +184,13 @@ function showTask(taskId) {
       datetime = datetime.toLocaleString("en-US", dateTimeOptions);
 
       select("#show_dateTime").innerText = datetime;
+
+      if (task.image) {
+        select("#taskImg").src = "/taskimage/" + task.image;
+        show("#taskImageContainer");
+      } else {
+        hide("#taskImageContainer");
+      }
 
       if (task.isImportant) show("#show_isImportant");
       else hide("#show_isImportant");

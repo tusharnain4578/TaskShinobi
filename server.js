@@ -4,6 +4,9 @@ const session = require("express-session");
 const SequelizeStore = require("connect-session-sequelize")(session.Store);
 const dbConn = require("./db/connection");
 require("dotenv").config();
+const multer = require("multer");
+
+const upload = multer();
 
 //Importing Models //1 by 1 in order
 const User = require("./models/User");
@@ -21,6 +24,7 @@ const {
   addTask,
   deleteTask,
   changeTaskStatus,
+  getTaskImage,
 } = require("./controllers/TaskController");
 
 //Importing Middlewares
@@ -73,8 +77,23 @@ app.use("/api/is-authenticated", isAuthenticated, AuthStatusController);
 
 // _todo api
 app.post("/api/task/get", isAuthenticated, getTask);
-app.post("/api/task/add", isAuthenticated, addTask);
-app.post("/api/task/update", isAuthenticated, addTask);
+
+app.get("/taskimage/:image", isAuthenticated, getTaskImage);
+
+app.post(
+  "/api/task/add",
+  isAuthenticated,
+  upload.single("task_image"),
+  addTask
+);
+
+app.post(
+  "/api/task/update",
+  isAuthenticated,
+  upload.single("task_image"),
+  addTask
+);
+
 app.post("/api/task/complete", isAuthenticated, changeTaskStatus);
 app.post("/api/task/delete", isAuthenticated, deleteTask);
 

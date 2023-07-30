@@ -1,5 +1,8 @@
+const path = require("path");
+const fs = require("fs");
 const { escape } = require("lodash");
 const Task = require("../models/Task");
+const { saveTaskImage, deleteTaskImage } = require("../models/FileUpload");
 
 //* Task Controller
 
@@ -8,6 +11,18 @@ const taskValidate = (task) => {
   if (isInvalid) {
     return false;
   }
+
+  return true;
+};
+const imageValidate = (file) => {
+  const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif"];
+  const maxSizeInBytes = 500 * 1024; // 500KB file size limit
+
+  const fileExtension = path.extname(file.originalname).toLowerCase();
+
+  if (!allowedExtensions.includes(fileExtension)) return false;
+
+  if (file.size > maxSizeInBytes) return false;
 
   return true;
 };
@@ -47,8 +62,8 @@ const getTask = async (req, res) => {
 const addTask = async (req, res) => {
   try {
     let { task, isImportant, isUpdate, taskId } = req.body;
-
-    if (!taskValidate(task)) {
+    console.log(req.body);
+    if (!taskValidate(task) || (req.file && !imageValidate(req.file))) {
       return res.status(400).send({
         error: true,
         message: "Bad Request! Validation Failed!",
@@ -56,8 +71,10 @@ const addTask = async (req, res) => {
     }
 
     let _task = null;
+
     if (isUpdate && taskId) {
-      _task = await Task.findByPk(taskId);
+      const condition = { userId: req.user.id, id: taskId };
+      _task = await Task.findOne({ where: condition });
 
       if (!_task) {
         return res
@@ -66,6 +83,11 @@ const addTask = async (req, res) => {
       }
     } else {
       _task = new Task();
+    }
+
+    //handling image upload
+    if (req.file) {
+      _task.image = saveTaskImage(req.file, _task);
     }
 
     _task.task = escape(task);
@@ -106,7 +128,9 @@ const deleteTask = async (req, res) => {
       });
     }
 
-    const task = await Task.findByPk(taskId);
+    const condition = { userId: req.user.id, id: taskId };
+
+    const task = await Task.findOne({ where: condition });
 
     if (!task) {
       return res
@@ -115,6 +139,8 @@ const deleteTask = async (req, res) => {
     }
 
     await task.destroy();
+
+    if (task.image) deleteTaskImage(task.image);
 
     return res.status(201).send({
       success: true,
@@ -139,7 +165,9 @@ const changeTaskStatus = async (req, res) => {
       });
     }
 
-    const task = await Task.findByPk(taskId);
+    const condition = { userId: req.user.id, id: taskId };
+
+    const task = await Task.findOne({ where: condition });
 
     if (!task) {
       return res
@@ -164,4 +192,34 @@ const changeTaskStatus = async (req, res) => {
   }
 };
 
-module.exports = { getTask, addTask, deleteTask, changeTaskStatus };
+const getTaskImage = async (req, res) => {
+  const { image } = req.params;
+
+  if (image) {
+    const condition = { userId: req.user.id, image: image };
+
+    const userTask = await Task.findOne({ where: condition });
+
+    if (userTask) {
+      const imagePath = path.join(
+        __dirname,
+        "..",
+        "uploads",
+        "tasks",
+        userTask.image
+      );
+
+      return res.status(200).sendFile(imagePath);
+    }
+  }
+
+  return res.status(404).json({ error: 404 });
+};
+
+module.exports = {
+  getTask,
+  addTask,
+  deleteTask,
+  changeTaskStatus,
+  getTaskImage,
+};

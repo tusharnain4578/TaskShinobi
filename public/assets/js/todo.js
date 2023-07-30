@@ -31,6 +31,59 @@ function validateTask(event) {
   validateField("#" + id);
 }
 
+function validateTaskImage(event) {
+  const el = event.target;
+  const id = el.id;
+  const file = el.files[0];
+  const prevContainer = `#${id}_prev`;
+
+  const maxSize = 500 * 1024;
+
+  if (!file) return;
+
+  if (id == "edit_task_image") {
+    editTaskValid = false;
+    show("#clear_edit_input", "inherit");
+  } else {
+    addTaskValid = false;
+    show("#clear_add_input", "inherit");
+  }
+
+  let errMsg = null;
+
+  if (!file.type.startsWith("image/"))
+    errMsg = "The selected file is not an image.";
+
+  if (!errMsg && file.size > maxSize)
+    errMsg = "Maximum image size to upload is 500kb.";
+
+  if (errMsg) {
+    hide(prevContainer);
+    return invalidateField("#" + id, errMsg);
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function () {
+    const img = new Image();
+    img.classList.add("preview-image");
+    img.style.maxWidth = "150px";
+    img.src = reader.result;
+
+    if (select(prevContainer).querySelector(".preview-image"))
+      select(prevContainer).querySelector(".preview-image").remove();
+
+    select(prevContainer).appendChild(img);
+    show(prevContainer);
+  };
+  reader.readAsDataURL(file);
+
+  if (id == "edit_task_image") editTaskValid = true;
+  else addTaskValid = true;
+
+  validateField("#" + id);
+}
+
 function getTask(taskId, callback) {
   const options = {
     method: "POST",
@@ -64,30 +117,23 @@ const addTask = (event) => {
 
   select("#task").dispatchEvent(new Event("input"));
 
+  if (addTaskValid) select("#task_image").dispatchEvent(new Event("change"));
+
   if (addTaskValid) {
     let formData = new FormData(event.target);
-
-    let data = {};
-
-    for (var p of formData) {
-      let name = p[0];
-      let value = p[1];
-
-      data[name] = value.trim();
-    }
 
     btnSpinShow("#addTask_btn");
 
     const options = {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
+      body: formData,
     };
 
     fetch("/api/task/add", options)
-      .then((res) => res.json())
+      .then((res) => {
+        btnSpinHide("#addTask_btn");
+        return res.json();
+      })
       .then((res) => {
         console.log(res);
 
@@ -101,13 +147,17 @@ const addTask = (event) => {
           addNewTask(res.task);
           select("#task").value = "";
           select("#isImportant").checked = false;
+
+          hide("#clear_add_input");
         }
+
+        select("#task_image").value = "";
+        hide("#task_image_prev");
       })
       .catch((error) => {
         successNotif("Something went wrong! Try refreshing the page!", 10000);
+        btnSpinHide("#addTask_btn");
       });
-
-    btnSpinHide("#addTask_btn");
   }
 };
 
@@ -115,24 +165,17 @@ function updateTask(event) {
   event.preventDefault();
 
   select("#edit_task").dispatchEvent(new Event("input"));
+  if (editTaskValid)
+    select("#edit_task_image").dispatchEvent(new Event("change"));
 
   if (editTaskValid) {
     let formData = new FormData(event.target);
-    let data = {};
-    for (var p of formData) {
-      let name = p[0];
-      let value = p[1];
-      data[name] = value.trim();
-    }
 
     btnSpinShow("#editTask_btn");
 
     const options = {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
+      body: formData,
     };
 
     fetch("/api/task/update", options)

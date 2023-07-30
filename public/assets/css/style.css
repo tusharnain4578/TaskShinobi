@@ -255,3 +255,18 @@ input[type="checkbox"].chk:hover::after {
   text-decoration: line-through;
   text-decoration-thickness: 2px;
 }
+
+/* task img on table*/
+.task-img {
+  max-width: 50px;
+  max-height: 30px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* task image on `show modal` */
+#taskImageContainer {
+  box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px,
+    rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+}

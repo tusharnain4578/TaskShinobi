@@ -19,6 +19,10 @@ const Task = dbConn.define("Task", {
     type: DataTypes.STRING(1000),
     allowNull: false,
   },
+  image: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
   isImportant: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
